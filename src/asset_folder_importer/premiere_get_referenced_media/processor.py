@@ -196,8 +196,8 @@ def process_premiere_project(filepath, raven_client, db=None, cfg=None):
     for filepath in pp.getReferencedMedia():
         total_files += 1
         lg.debug("Looking up {0}".format(filepath))
+        server_path = re.sub(u'^/Volumes', '/srv', filepath).encode('utf-8')
         try:
-            server_path = re.sub(u'^/Volumes', '/srv', filepath).encode('utf-8')
             item=process_premiere_fileref(filepath, server_path, vsproject, db=db, cfg=cfg)
             #using this construct to avoid loading more data from VS than necessary.  We simply check whether the ID exists
             #in the parent collections list (cached on the item record) without lifting any more info out of VS
@@ -209,6 +209,7 @@ def process_premiere_project(filepath, raven_client, db=None, cfg=None):
         except VSNotFound:
             lg.error("File {0} could not be found in either Vidispine or the asset importer database".format(server_path))
             if "Internet Downloads" in filepath:
+                #note - this could raise a 400 exception IF there is a conflict with something else trying to add info to the same field
                 vsproject.set_metadata({'gnm_project_invalid_media_paths': filepath}, mode="add")
             continue
         except NotInDatabaseError:
