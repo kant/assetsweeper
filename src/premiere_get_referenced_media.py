@@ -276,8 +276,10 @@ def process_premiere_project(filepath, db=None, cfg=None):
         item.populate(vsid,specificFields=['gnm_asset_category'])
         if item.get('gnm_asset_category').lower() == 'branding':
             lg.info("File %s is branding, not adding to project" % (filepath, ))
+            if "Internet Downloads" in server_path:
+                vsproject.set_metadata({'gnm_project_invalid_media_paths': server_path}, mode="add")
             continue
-            
+
         lg.debug("Got filepath %s" % filepath)
         fileid = db.fileId(server_path)
         if fileid:
